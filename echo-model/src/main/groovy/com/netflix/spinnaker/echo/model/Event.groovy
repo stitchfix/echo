@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.echo.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
 /**
  * Represents an event
  */
 public class Event {
   Metadata details
   Map content
+  Map payload
 }

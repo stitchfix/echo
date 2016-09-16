@@ -22,16 +22,20 @@ import lombok.Builder;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Wither;
+import java.util.Map;
 
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "constraints", "branch"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
     CRON("cron"),
-    JENKINS("jenkins");
+    GIT("git"),
+    JENKINS("jenkins"),
+    DOCKER("docker"),
+    WEBHOOK("webhook");
 
     private final String type;
 
@@ -53,9 +57,35 @@ public class Trigger {
   Integer buildNumber;
   String propertyFile;
   String cronExpression;
+  String source;
+  String project;
+  String slug;
+  String hash;
+  String account;
+  String repository;
+  String tag;
+  String digest;
+  Map constraints;
+  String branch;
 
   public Trigger atBuildNumber(final int buildNumber) {
-    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression);
+    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression, source, project, slug, null, account, repository, null, digest, null, branch);
+  }
+
+  public Trigger atHash(final String hash) {
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch);
+  }
+
+  public Trigger atBranch(final String branch) {
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch);
+  }
+
+  public Trigger atTag(final String tag) {
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, digest, null, branch);
+  }
+
+  public Trigger atConstraints(final Map constraints) {
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, null, constraints, branch);
   }
 
   @JsonPOJOBuilder(withPrefix = "")

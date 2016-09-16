@@ -6,12 +6,13 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Pipeline
+import com.netflix.spinnaker.echo.pipelinetriggers.monitor.BuildEventMonitor
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import rx.functions.Action1
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static com.netflix.spinnaker.echo.model.BuildEvent.Result.*
+import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.*
 
 class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
@@ -26,8 +27,10 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   @Subject
   def monitor = new BuildEventMonitor(pipelineCache, subscriber, registry)
 
-  def "triggers pipelines for successful builds"() {
+  @Unroll
+  def "triggers pipelines for successful builds for #triggerType"() {
     given:
+    def pipeline = createPipelineWith(trigger)
     pipelineCache.getPipelines() >> [pipeline]
 
     when:
@@ -39,11 +42,11 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event = createBuildEventWith(SUCCESS)
-    pipeline = createPipelineWith(enabledJenkinsTrigger)
+    event                         | trigger               | triggerType
+    createBuildEventWith(SUCCESS) | enabledJenkinsTrigger | 'jenkins'
   }
 
-  def "attaches the trigger to the pipeline"() {
+  def "attaches jenkins trigger to the pipeline"() {
     given:
     pipelineCache.getPipelines() >> [pipeline]
 
@@ -77,11 +80,11 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     event = createBuildEventWith(SUCCESS)
     pipelines = (1..2).collect {
       Pipeline.builder()
-              .application("application")
-              .name("pipeline$it")
-              .id("id")
-              .triggers([enabledJenkinsTrigger])
-              .build()
+        .application("application")
+        .name("pipeline$it")
+        .id("id")
+        .triggers([enabledJenkinsTrigger])
+        .build()
     }
   }
 
@@ -123,6 +126,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     trigger                                 | description
     disabledJenkinsTrigger                  | "disabled"
     nonJenkinsTrigger                       | "non-Jenkins"
+    enabledStashTrigger                     | "stash"
     enabledJenkinsTrigger.withMaster("FOO") | "different master"
     enabledJenkinsTrigger.withJob("FOO")    | "different job"
 

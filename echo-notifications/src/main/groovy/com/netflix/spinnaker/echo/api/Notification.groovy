@@ -29,13 +29,15 @@ class Notification {
     String executionType
     String executionId
     String application
+    String user
   }
 
   static enum Type {
     HIPCHAT,
     EMAIL,
     SMS,
-    SLACK
+    SLACK,
+    PAGER_DUTY
   }
 
   static enum Severity {
